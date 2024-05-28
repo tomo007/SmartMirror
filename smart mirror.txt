@@ -1,0 +1,158 @@
+4. zadatak ---> stanje na cestama:
+---------------------------------------------------------------------
+import requests
+from bs4 import BeautifulSoup
+
+URL = "http://hak.hr"
+response = requests.get(URL)
+stranica = BeautifulSoup(response.content, "html.parser")
+opis_prometa = stranica.find("p", class_="content").get_text()
+
+print(opis_prometa)
+
+
+
+1. zadatak ----> backgraund kamera:
+-----------------------------------------------------------------------
+
+import cv2
+import tkinter as tk
+from PIL import Image, ImageTk
+
+
+def update_frame():
+    # Čitanje frame-a sa kamere
+    ret, frame = cap.read()
+    if not ret:
+        print("Greška u čitanju frame-a sa kamere.")
+        return
+
+    # Konvertovanje frame-a u format koji tkinter može koristiti
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    img = Image.fromarray(frame)
+    imgtk = ImageTk.PhotoImage(image=img)
+
+    # Ažuriranje label-a sa novom slikom
+    lbl.imgtk = imgtk
+    lbl.configure(image=imgtk)
+
+    # Ponovno pozivanje funkcije update_frame nakon 10ms
+    root.after(10, update_frame)
+
+
+# Inicijalizacija kamere
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print("Ne mogu da otvorim kameru.")
+    exit()
+
+# Kreiranje glavnog prozora
+root = tk.Tk()
+root.title("Video Feed kao Background")
+
+# Kreiranje label-a za prikaz video feed-a
+lbl = tk.Label(root)
+lbl.pack()
+
+# Pozivanje funkcije update_frame
+update_frame()
+
+# Pokretanje glavne petlje tkinter-a
+root.mainloop()
+
+# Oslobađanje kamere nakon zatvaranja prozora
+cap.release()
+cv2.destroyAllWindows()
+
+
+2. zadatak ----> datum i vrijeme
+---------------------------------------------------------
+ import tkinter as tk
+import time
+
+def update_time():
+    current_time = time.strftime("%Y-%m-%d %H:%M:%S")
+    time_label.config(text=current_time)
+    root.after(1000, update_time)
+
+root = tk.Tk()
+root.title("SmartMirror")
+
+time_label = tk.Label(root, font=('Helvetica', 48), bg='black', fg='white')
+time_label.pack(anchor='center')
+
+update_time()
+root.mainloop()
+
+
+3. zadatak ---> prognoza
+----------------------------------------------------------------
+import requests
+import ipinfo
+
+api_key = "bb9c70e60e3ee7e5cc6e740c9b1fc488"
+ipinfo_token = "9335f66b2ee0dc"
+language = "hr"
+
+def get_local_weather(api_key, ipinfo_token):
+    try:
+        handler = ipinfo.getHandler(ipinfo_token)
+        details = handler.getDetails()
+        
+        latitude = details.latitude
+        longitude = details.longitude
+
+        print(f"Lokacija: {details.city}, {details.region}, {details.country}")
+        print(f"Geografska širina: {latitude}, Geografska dužina: {longitude}")
+
+        url = f"http://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid={api_key}&units=metric&lang={language}"
+        response = requests.get(url)
+        data = response.json()
+
+        if response.status_code == 200:
+            weather = data["weather"][0]["description"]
+            temperature = data["main"]["temp"]
+            humidity = data["main"]["humidity"]
+            wind_speed = data["wind"]["speed"]
+
+            print("Trenutno vrijeme:")
+            print(f"Sažetak: {weather}")
+            print(f"Temperatura: {temperature} °C")
+            print(f"Vlaga: {humidity} %")
+            print(f"Vjetar: {wind_speed} m/s")
+        else:
+            print(f"Neuspješno dohvaćanje podataka o vremenu: {data.get("Poruka", "Nepoznati error")}")
+    except Exception as e:
+        print(f"Došlo je do pogreške: {e}")
+
+get_local_weather(api_key, ipinfo_token)
+
+
+5. zadatak ----> vijesti
+----------------------------------------------------------
+import requests
+
+api_key = "pub_45042470cf3f6ec7c593e1c968b34bdbccf9d"
+base_url = "https://newsdata.io/api/1/news"
+
+params = {
+    "apikey": api_key,
+    "country": "hr",
+    "category": "technology",
+    "language": "hr",
+}
+
+response = requests.get(base_url, params=params)
+
+if response.status_code == 200:
+    data = response.json()
+
+    for article in data["results"]:
+        print(f"Naslov: {article["title"]}")
+        print(f"Opis: {article["description"]}")
+        print(f"Link: {article["link"]}")
+        print()
+else:
+    print(f"Neuspješno dohvaćanje vijesti. Statusni kod: {response.status_code}")
+
+
